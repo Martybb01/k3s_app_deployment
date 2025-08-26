@@ -37,8 +37,3 @@ sudo kubectl wait --for=condition=available --timeout=300s deployment/jenkins -n
 echo ""
 echo "✅ Jenkins deployato con successo!"
 echo ""
-echo "🌐 Accesso Jenkins:"
-echo "  - http://192.168.56.10:30808"
-echo "  - http://192.168.56.11:30808"  
-echo "  - http://192.168.56.12:30808"
-echo ""

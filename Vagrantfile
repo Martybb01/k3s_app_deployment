@@ -29,6 +29,12 @@ Vagrant.configure("2") do |config|
       sudo cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config 2>/dev/null || true
       sudo chown vagrant:vagrant /home/vagrant/.kube/config 2>/dev/null || true
       sudo chmod 600 /home/vagrant/.kube/config
+      echo 'export KUBECONFIG=/home/vagrant/.kube/config' >> /home/vagrant/.bashrc
+
+      sudo cp /home/vagrant/.kube/config /home/vagrant/.kube/config-workers
+      sudo sed -i 's/127.0.0.1:6443/192.168.56.10:6443/g' /home/vagrant/.kube/config-workers
+      sudo chown vagrant:vagrant /home/vagrant/.kube/config-workers
+      sudo chmod 600 /home/vagrant/.kube/config-workers
 
       sudo mkdir -p /opt/jenkins-data
       sudo chown vagrant:vagrant /opt/jenkins-data
@@ -67,7 +73,27 @@ Vagrant.configure("2") do |config|
         
         sudo systemctl enable k3s-agent
         sudo systemctl start k3s-agent
-        
+
+        if [ ! -f /home/vagrant/.ssh/id_rsa ]; then
+          sudo -u vagrant ssh-keygen -t rsa -b 2048 -f /home/vagrant/.ssh/id_rsa -N ""
+        fi
+
+        sudo -u vagrant sshpass -p 'vagrant' ssh-copy-id -o StrictHostKeyChecking=no vagrant@192.168.56.10
+
+        while ! sudo -u vagrant ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 vagrant@192.168.56.10 "test -f /home/vagrant/.kube/config-workers" 2>/dev/null; do
+          echo "Aspettando che il file config-workers sia disponibile sul master..."
+          sleep 5
+        done
+
+        sudo mkdir -p /home/vagrant/.kube
+        sudo chown vagrant:vagrant /home/vagrant/.kube
+        sudo chmod 755 /home/vagrant/.kube
+
+        sudo -u vagrant scp -o StrictHostKeyChecking=no vagrant@192.168.56.10:/home/vagrant/.kube/config-workers /home/vagrant/.kube/config
+        sudo chown vagrant:vagrant /home/vagrant/.kube/config
+        sudo chmod 600 /home/vagrant/.kube/config
+        echo 'export KUBECONFIG=/home/vagrant/.kube/config' >> /home/vagrant/.bashrc
+
         sudo mkdir -p /opt/jenkins-data
         sudo chown vagrant:vagrant /opt/jenkins-data
         sudo chmod 755 /opt/jenkins-data
@@ -77,9 +103,6 @@ Vagrant.configure("2") do |config|
       
       if i == 2
         node.vm.provision "shell", inline: <<-SHELL
-          if [ ! -f /home/vagrant/.ssh/id_rsa ]; then
-            sudo -u vagrant ssh-keygen -t rsa -b 2048 -f /home/vagrant/.ssh/id_rsa -N ""
-          fi
           sudo -u vagrant sshpass -p 'vagrant' ssh-copy-id -o StrictHostKeyChecking=no vagrant@192.168.56.10
 
           if sudo -u vagrant ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 vagrant@192.168.56.10 "echo 'SSH connection successful'"; then
