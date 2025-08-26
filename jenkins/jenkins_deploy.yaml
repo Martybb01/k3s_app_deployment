@@ -24,15 +24,12 @@ spec:
           mountPath: /var/jenkins_home
         - name: docker-socket
           mountPath: /var/run/docker.sock
-        env:
-        - name: JAVA_OPTS
-          value: "-Djenkins.install.runSetupWizard=false"
         resources:
           limits:
-            memory: "1Gi"
+            memory: "1.5Gi"
             cpu: "1"
           requests:
-            memory: "128Mi"
+            memory: "256Mi"
             cpu: "500m"
       volumes:
       - name: jenkins-home

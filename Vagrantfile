@@ -47,7 +47,7 @@ Vagrant.configure("2") do |config|
 
     
     master.vm.provider "virtualbox" do |vb|
-      vb.memory = "2048"
+      vb.memory = "3072"
       vb.cpus = 2
     end
   end
@@ -116,7 +116,7 @@ Vagrant.configure("2") do |config|
       end
       
       node.vm.provider "virtualbox" do |vb|
-        vb.memory = "2048"
+        vb.memory = "3072"
         vb.cpus = 1
       end
     end
