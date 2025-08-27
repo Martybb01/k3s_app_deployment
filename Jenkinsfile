@@ -22,13 +22,13 @@ pipeline {
             }
         }
 
-        stage('Import to K3s') {
-            steps {
-                script {
-                    sh "docker save ${DOCKER_IMAGE}:${DOCKER_TAG} | k3s ctr images import -"
-                }
-            }
-        }
+        // stage('Import to K3s') {
+        //     steps {
+        //         script {
+        //             sh "docker save ${DOCKER_IMAGE}:${DOCKER_TAG} | k3s ctr images import -"
+        //         }
+        //     }
+        // }
 
          stage('Deploy to K3s') {
             steps {
