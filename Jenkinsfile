@@ -17,6 +17,7 @@ pipeline {
                 script {
                     dir('k3s_app_deployment/flask-app') {
                         sh 'docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .'
+                    }
                 }
             }
         }
