@@ -38,9 +38,9 @@ pipeline {
                         
                         sh "kubectl apply -f app_deploy.yaml"
                         
-                        sh "kubectl rollout restart deployment/flask-app || echo 'Deployment not found, creating new one'"
+                        // sh "kubectl rollout restart deployment/flask-app || echo 'Deployment not found, creating new one'"
                         
-                        sh "kubectl rollout status deployment/flask-app --timeout=300s"
+                        // sh "kubectl rollout status deployment/flask-app --timeout=300s"
                     }
                 }
             }
