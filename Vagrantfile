@@ -24,6 +24,22 @@ Vagrant.configure("2") do |config|
       
       sudo systemctl enable k3s
       sudo systemctl start k3s
+
+      echo "Setting up local Docker registry..."
+      sudo docker run -d \
+        --restart=always \
+        --name registry \
+        -p 5000:5000 \
+        registry:2
+
+      echo "Configuring K3s to use insecure registry..."
+      sudo mkdir -p /etc/rancher/k3s
+      echo "mirrors:
+        localhost:5000:
+          endpoint:
+            - http://localhost:5000" | sudo tee /etc/rancher/k3s/registries.yaml
+
+      sudo systemctl restart k3s
       
       sudo mkdir -p /home/vagrant/.kube 2>/dev/null || true
       sudo cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config 2>/dev/null || true
@@ -106,7 +122,7 @@ Vagrant.configure("2") do |config|
           sudo -u vagrant sshpass -p 'vagrant' ssh-copy-id -o StrictHostKeyChecking=no vagrant@192.168.56.10
 
           if sudo -u vagrant ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 vagrant@192.168.56.10 "echo 'SSH connection successful'"; then
-            echo "✅ Connessione SSH al master riuscita!"
+            echo "Connessione SSH al master riuscita!"
             sleep 30
             sudo -u vagrant ssh -o StrictHostKeyChecking=no vagrant@192.168.56.10 "cd /vagrant && bash jenkins/deploy-jenkins.sh"
           else

@@ -9,7 +9,7 @@ counter=0
 while [ $counter -lt $timeout ]; do
     ready_nodes=$(sudo kubectl get nodes --no-headers | grep " Ready " | wc -l)
     if [ "$ready_nodes" -eq 3 ]; then
-        echo "✅ Tutti e 3 i nodi sono pronti!"
+        echo "Tutti e 3 i nodi sono pronti!"
         break
     fi
     echo "   Nodi pronti: $ready_nodes/3... (attesa: ${counter}s)"
@@ -26,8 +26,9 @@ echo 'Building Jenkins custom image'
 cd /vagrant/jenkins
 sudo docker build -t jenkins-custom:latest .
 
-echo "Loading Jenkins image in K3s..."
-sudo docker save jenkins-custom:latest | sudo k3s ctr images import -
+echo "Tagging and pushing to local registry..."
+sudo docker tag jenkins-custom:latest localhost:5000/jenkins-custom:latest
+sudo docker push localhost:5000/jenkins-custom:latest
 
 echo "Deploying Jenkins storage..."
 sudo kubectl apply -f /vagrant/jenkins/jenkins_storage.yaml
@@ -42,5 +43,5 @@ echo "Aspettando che Jenkins sia pronto..."
 sleep 60
 
 echo ""
-echo "✅ Jenkins deployato con successo!"
+echo "Jenkins deployato con successo!"
 echo ""

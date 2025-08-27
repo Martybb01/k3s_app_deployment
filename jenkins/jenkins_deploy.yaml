@@ -16,18 +16,22 @@ spec:
       serviceAccountName: jenkins
       containers:
       - name: jenkins
-        image: jenkins-custom:latest
-        imagePullPolicy: Never
+        image: localhost:5000/jenkins-custom:latest
+        imagePullPolicy: Always
         securityContext:
-          privileged: true
-          runAsUser: 0
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
         ports:
         - containerPort: 8080
         volumeMounts:
         - name: jenkins-home
           mountPath: /var/jenkins_home
-        - name: docker-socket
-          mountPath: /var/run/docker.sock
+        - name: tmp
+          mountPath: /tmp
+        - name: k3s-socket
+          mountPath: /var/run/k3s
+          readOnly: true
         resources:
           limits:
             memory: "1.5Gi"
@@ -39,10 +43,12 @@ spec:
       - name: jenkins-home
         persistentVolumeClaim:
           claimName: jenkins-pvc
-      - name: docker-socket
+      - name: tmp
+        emptyDir: {}
+      - name: k3s-socket
         hostPath:
-          path: /var/run/docker.sock
-          type: Socket
+          path: /var/run/k3s
+          type: Directory
 ---
 apiVersion: v1
 kind: Service

@@ -18,8 +18,8 @@ spec:
         kubernetes.io/hostname: master-node
       containers:
         - name: flask-app
-          image: flask-app:latest
-          imagePullPolicy: Never
+          image: localhost:5000/flask-app:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
           env:
