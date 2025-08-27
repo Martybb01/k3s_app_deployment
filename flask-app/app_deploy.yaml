@@ -41,5 +41,5 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 5000
-      nodePort: 42000
+      nodePort: 30420
   type: NodePort
