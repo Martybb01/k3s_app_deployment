@@ -22,17 +22,24 @@ if [ $counter -eq $timeout ]; then
     exit 1
 fi
 
+echo 'Building Jenkins custom image'
+cd /vagrant/jenkins
+sudo docker build -t jenkins-custom:latest .
+
+echo "Loading Jenkins image in K3s..."
+sudo docker save jenkins-custom:latest | sudo k3s ctr images import -
+
 echo "Deploying Jenkins storage..."
 sudo kubectl apply -f /vagrant/jenkins/jenkins_storage.yaml
 
 echo "Aspettando binding PVC..."
-sudo kubectl wait --for=condition=bound pvc/jenkins-pvc -n jenkins --timeout=60s
+sleep 10
 
 echo "Deploying Jenkins..."
 sudo kubectl apply -f /vagrant/jenkins/jenkins_deploy.yaml
 
 echo "Aspettando che Jenkins sia pronto..."
-sudo kubectl wait --for=condition=available --timeout=300s deployment/jenkins -n jenkins
+sleep 60
 
 echo ""
 echo "✅ Jenkins deployato con successo!"

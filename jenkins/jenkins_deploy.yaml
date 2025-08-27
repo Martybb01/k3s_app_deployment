@@ -16,7 +16,10 @@ spec:
       serviceAccountName: jenkins
       containers:
       - name: jenkins
-        image: jenkins/jenkins:lts
+        image: jenkins-custom:latest
+        imagePullPolicy: Never
+        securityContext:
+          privileged: true
         ports:
         - containerPort: 8080
         volumeMounts:
