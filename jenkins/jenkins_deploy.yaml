@@ -20,6 +20,7 @@ spec:
         imagePullPolicy: Never
         securityContext:
           privileged: true
+          runAsUser: 0
         ports:
         - containerPort: 8080
         volumeMounts:
