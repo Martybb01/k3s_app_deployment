@@ -21,8 +21,8 @@ pipeline {
                         echo "Building container image with Podman..."
 
                         sh '''
-                            export XDG_RUNTIME_DIR=/tmp/runtime-jenkins
-                            mkdir -p $XDG_RUNTIME_DIR
+                            sudo usermod --add-subuids 100000-165535 jenkins
+                            sudo usermod --add-subgids 100000-165535 jenkins
                             podman build -t ${IMAGE_FULL} .
                         '''
                     }
