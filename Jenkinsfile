@@ -1,8 +1,10 @@
 pipeline {
     agent any
     environment {
-        DOCKER_IMAGE = 'flask-app'
-        DOCKER_TAG = 'latest'
+        REGISTRY = 'localhost:5000'
+        IMAGE_NAME = 'flask-app'
+        IMAGE_TAG = 'latest'
+        IMAGE_FULL = "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
     }
 
     stages {
@@ -12,57 +14,56 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Container Image') {
             steps {
                 script {
                     dir('flask-app') {
-                        sh 'docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .'
+                        echo "Building container image with Podman..."
+                        
+                        sh "podman build -t ${IMAGE_FULL} ."
                     }
                 }
             }
         }
 
-        // stage('Import to K3s') {
-        //     steps {
-        //         script {
-        //             sh "docker save ${DOCKER_IMAGE}:${DOCKER_TAG} | k3s ctr images import -"
-        //         }
-        //     }
-        // }
+        stage('Push to Local Registry') {
+            steps {
+                script {
+                    echo "Pushing image to local registry..."
+                    
+                    sh "podman push ${IMAGE_FULL} --tls-verify=false"
+                    
+                    echo "Image pushed successfully to ${REGISTRY}"
+                }
+            }
+        }
 
-         stage('Deploy to K3s') {
+        stage('Deploy to K3s') {
             steps {
                 script {
                     dir('flask-app') {
                         echo "Deploying Flask app to K3s cluster..."
                         
                         sh "kubectl apply -f app_deploy.yaml"
-                        
-                        // sh "kubectl rollout restart deployment/flask-app || echo 'Deployment not found, creating new one'"
-                        
-                        // sh "kubectl rollout status deployment/flask-app --timeout=300s"
                     }
                 }
             }
         }
-
-        
-
-        // stage('Test Image') {
-        //     steps {
-        //         script {
-        //             sh "docker run --rm -d --name test-flask -p 5001:5000 ${DOCKER_IMAGE}:${DOCKER_TAG}"
-        //             sleep 5
-        //             sh "curl -f http://localhost:5001 || exit 1"
-        //             sh "docker stop test-flask"
-        //         }
-        //     }
-        // }
     }
 
     post {
         always {
+            script {
+                sh "podman rmi ${IMAGE_FULL} || true"
+            }
             cleanWs()
+        }
+        success {
+            echo "Pipeline completed successfully!"
+            echo "App deployed with image: ${IMAGE_FULL}"
+        }
+        failure {
+            echo "Pipeline failed!"
         }
     }
 }
