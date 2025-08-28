@@ -19,8 +19,12 @@ pipeline {
                 script {
                     dir('flask-app') {
                         echo "Building container image with Podman..."
-                        
-                        sh "podman build -t ${IMAGE_FULL} ."
+
+                        sh '''
+                            export XDG_RUNTIME_DIR=/tmp/runtime-jenkins
+                            mkdir -p $XDG_RUNTIME_DIR
+                            podman build -t ${IMAGE_FULL} .
+                        '''
                     }
                 }
             }
