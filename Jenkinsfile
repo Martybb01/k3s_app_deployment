@@ -20,11 +20,7 @@ pipeline {
                     dir('flask-app') {
                         echo "Building container image with Podman..."
 
-                        sh '''
-                            sudo usermod --add-subuids 100000-165535 jenkins
-                            sudo usermod --add-subgids 100000-165535 jenkins
-                            podman build -t ${IMAGE_FULL} .
-                        '''
+                        sh "podman build -t ${IMAGE_FULL} ."
                     }
                 }
             }
