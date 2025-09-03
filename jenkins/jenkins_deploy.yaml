@@ -16,22 +16,25 @@ spec:
       serviceAccountName: jenkins
       containers:
       - name: jenkins
-        image: localhost:5000/jenkins-custom:latest
+        image: localhost:5000/jenkins-kaniko:latest
         imagePullPolicy: Always
         securityContext:
           runAsUser: 1000
           runAsGroup: 1000
           allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 8080
         volumeMounts:
         - name: jenkins-home
           mountPath: /var/jenkins_home
-        - name: tmp
-          mountPath: /tmp
         - name: k3s-socket
           mountPath: /var/run/k3s
           readOnly: true
+        - name: kaniko-config
+          mountPath: /kaniko/.docker
         resources:
           limits:
             memory: "1.5Gi"
@@ -43,12 +46,13 @@ spec:
       - name: jenkins-home
         persistentVolumeClaim:
           claimName: jenkins-pvc
-      - name: tmp
-        emptyDir: {}
       - name: k3s-socket
         hostPath:
           path: /var/run/k3s
           type: Directory
+      - name: kaniko-config
+        configMap:
+          name: kaniko-config
 ---
 apiVersion: v1
 kind: Service
@@ -69,6 +73,21 @@ kind: ServiceAccount
 metadata:
   name: jenkins
   namespace: jenkins
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kaniko-config
+  namespace: jenkins
+data:
+  config.json: |
+    {
+      "auths": {
+        "localhost:5000": {
+          "auth": ""
+        }
+      }
+    }
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

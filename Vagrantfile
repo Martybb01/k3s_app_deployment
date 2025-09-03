@@ -124,7 +124,7 @@ Vagrant.configure("2") do |config|
           if sudo -u vagrant ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 vagrant@192.168.56.10 "echo 'SSH connection successful'"; then
             echo "Connessione SSH al master riuscita!"
             sleep 30
-            sudo -u vagrant ssh -o StrictHostKeyChecking=no vagrant@192.168.56.10 "cd /vagrant && bash jenkins/deploy-jenkins.sh"
+            sudo -u vagrant ssh -o StrictHostKeyChecking=no vagrant@192.168.56.10 "cd /vagrant && bash jenkins/deploy-kaniko-jenkins.sh"
           else
             echo "Connessione SSH al master fallita"
           fi

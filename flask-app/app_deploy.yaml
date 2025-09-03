@@ -14,8 +14,6 @@ spec:
       labels:
         app: flask-app
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: master-node
       containers:
         - name: flask-app
           image: localhost:5000/flask-app:latest

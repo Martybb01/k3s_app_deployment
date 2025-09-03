@@ -3,8 +3,9 @@ pipeline {
     environment {
         REGISTRY = 'localhost:5000'
         IMAGE_NAME = 'flask-app'
-        IMAGE_TAG = 'latest'
+        IMAGE_TAG = "${BUILD_NUMBER}"
         IMAGE_FULL = "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+        KANIKO_EXECUTOR = '/usr/local/bin/executor'
     }
 
     stages {
@@ -14,26 +15,21 @@ pipeline {
             }
         }
 
-        stage('Build Container Image') {
+        stage('Build Container Image with Kaniko') {
             steps {
                 script {
                     dir('flask-app') {
-                        echo "Building container image with Podman..."
+                        echo "Building container image with Kaniko..."
 
-                        sh "podman build -t ${IMAGE_FULL} ."
+                        sh """
+                            ${KANIKO_EXECUTOR} \
+                                --context=. \
+                                --dockerfile=Dockerfile \
+                                --destination=${IMAGE_FULL} \
+                                --insecure \
+                                --skip-tls-verify
+                        """
                     }
-                }
-            }
-        }
-
-        stage('Push to Local Registry') {
-            steps {
-                script {
-                    echo "Pushing image to local registry..."
-                    
-                    sh "podman push ${IMAGE_FULL} --tls-verify=false"
-                    
-                    echo "Image pushed successfully to ${REGISTRY}"
                 }
             }
         }
@@ -44,7 +40,10 @@ pipeline {
                     dir('flask-app') {
                         echo "Deploying Flask app to K3s cluster..."
                         
-                        sh "kubectl apply -f app_deploy.yaml"
+                        sh """
+                            kubectl patch deployment flask-app -p '{"spec":{"template":{"spec":{"containers":[{"name":"flask-app","image":"${IMAGE_FULL}"}]}}}}' || \
+                            kubectl apply -f app_deploy.yaml
+                        """
                     }
                 }
             }
@@ -53,9 +52,6 @@ pipeline {
 
     post {
         always {
-            script {
-                sh "podman rmi ${IMAGE_FULL} || true"
-            }
             cleanWs()
         }
         success {
