@@ -26,29 +26,29 @@ pipeline {
     namespace: jenkins
     spec:
     template:
-        spec:
+      spec:
         serviceAccountName: jenkins
         containers:
         - name: kaniko
-            image: gcr.io/kaniko-project/executor:latest
-            args:
-            - --context=dir://
-            - --dockerfile=Dockerfile
-            - --destination=${IMAGE_FULL}
-            - --insecure
-            - --skip-tls-verify
-            - --cleanup
-            volumeMounts:
-            - name: kaniko-docker-config
+          image: gcr.io/kaniko-project/executor:latest
+          args:
+          - --context=dir://
+          - --dockerfile=Dockerfile
+          - --destination=${IMAGE_FULL}
+          - --insecure
+          - --skip-tls-verify
+          - --cleanup
+          volumeMounts:
+          - name: kaniko-docker-config
             mountPath: /kaniko/.docker
-            - name: workspace
-            mountPath: /workspace
+          - name: workspace
+          mountPath: /workspace
         volumes:
         - name: kaniko-docker-config
-            configMap:
+          configMap:
             name: kaniko-docker-config
         - name: workspace
-            persistentVolumeClaim:
+          persistentVolumeClaim:
             claimName: jenkins-pvc
         restartPolicy: Never
     """
