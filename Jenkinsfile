@@ -22,34 +22,34 @@ pipeline {
     apiVersion: batch/v1
     kind: Job
     metadata:
-    name: kaniko-build-${BUILD_NUMBER}
-    namespace: jenkins
+      name: kaniko-build-${BUILD_NUMBER}
+      namespace: jenkins
     spec:
-    template:
-      spec:
-        serviceAccountName: jenkins
-        containers:
-        - name: kaniko
-          image: gcr.io/kaniko-project/executor:latest
-          args:
-          - --context=dir://
-          - --dockerfile=Dockerfile
-          - --destination=${IMAGE_FULL}
-          - --insecure
-          - --skip-tls-verify
-          - --cleanup
-          volumeMounts:
+      template:
+        spec:
+          serviceAccountName: jenkins
+          containers:
+          - name: kaniko
+            image: gcr.io/kaniko-project/executor:latest
+            args:
+            - --context=dir://
+            - --dockerfile=Dockerfile
+            - --destination=${IMAGE_FULL}
+            - --insecure
+            - --skip-tls-verify
+            - --cleanup
+            volumeMounts:
+            - name: kaniko-docker-config
+              mountPath: /kaniko/.docker
+            - name: workspace
+            mountPath: /workspace
+          volumes:
           - name: kaniko-docker-config
-            mountPath: /kaniko/.docker
+            configMap:
+              name: kaniko-docker-config
           - name: workspace
-          mountPath: /workspace
-        volumes:
-        - name: kaniko-docker-config
-          configMap:
-            name: kaniko-docker-config
-        - name: workspace
-          persistentVolumeClaim:
-            claimName: jenkins-pvc
+            persistentVolumeClaim:
+              claimName: jenkins-pvc
         restartPolicy: Never
     """
                         
