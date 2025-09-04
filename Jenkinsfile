@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        REGISTRY = '192.168.56.10:5000'
-        IMAGE_NAME = 'flask-app'
+        REGISTRY = 'docker.io'
+        IMAGE_NAME = 'marboccu/flask-app'
         IMAGE_TAG = "${BUILD_NUMBER}"
         IMAGE_FULL = "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
     }
@@ -76,7 +76,7 @@ pipeline {
                         
                         sh """
                             # Sostituisci l'immagine nel file YAML
-                            sed -i 's|image: localhost:5000/flask-app:latest|image: ${IMAGE_FULL}|g' app_deploy.yaml
+                            sed -i 's|image: .*|image: ${IMAGE_FULL}|g' app_deploy.yaml
                             
                             # Applica il deployment
                             kubectl apply -f app_deploy.yaml
@@ -100,123 +100,3 @@ pipeline {
         }
     }
 }
-
-// pipeline {
-//     agent any
-//     environment {
-//         REGISTRY = 'localhost:5000'
-//         IMAGE_NAME = 'flask-app'
-//         IMAGE_TAG = "${BUILD_NUMBER}"
-//         IMAGE_FULL = "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
-//     }
-
-//     stages {
-//         stage('Checkout') {
-//             steps {
-//                 checkout scm
-//             }
-//         }
-
-//         stage('Build Container Image with Kaniko') {
-//             steps {
-//                 script {
-//                     // Use Kubernetes plugin to run Kaniko in a separate pod
-//                     podTemplate(
-//                         yaml: """
-// apiVersion: v1
-// kind: Pod
-// spec:
-//   initContainers:
-//   - name: busybox-share-init
-//     image: busybox:musl
-//     command:
-//     - sh
-//     args:
-//     - -c
-//     - "cp -a /bin/* /busybox"
-//     volumeMounts:
-//     - name: busybox
-//       mountPath: /busybox
-//   containers:
-//   - name: kaniko
-//     image: gcr.io/kaniko-project/executor:latest
-//     command:
-//     - sleep
-//     args:
-//     - infinity
-//     env:
-//     - name: PATH
-//       value: /usr/local/bin:/kaniko:/busybox
-//     workingDir: /home/jenkins/agent
-//     volumeMounts:
-//     - name: busybox
-//       mountPath: /busybox
-//       readOnly: true
-//     - name: kaniko-docker-config
-//       mountPath: /kaniko/.docker
-//     resources:
-//       limits:
-//         memory: "1Gi"
-//         cpu: "500m"
-//       requests:
-//         memory: "256Mi"
-//         cpu: "100m"
-//   volumes:
-//   - name: busybox
-//     emptyDir: {}
-//   - name: kaniko-docker-config
-//     configMap:
-//       name: kaniko-docker-config
-// """
-//                     ) {
-//                         node(POD_LABEL) {
-//                             container('kaniko') {
-//                                 dir('flask-app') {
-//                                     echo "Building container image with Kaniko..."
-                                    
-//                                     sh """
-//                                         /kaniko/executor \
-//                                             --context=. \
-//                                             --dockerfile=Dockerfile \
-//                                             --destination=${IMAGE_FULL} \
-//                                             --insecure \
-//                                             --skip-tls-verify \
-//                                             --cleanup
-//                                     """
-//                                 }
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-
-//         stage('Deploy to K3s') {
-//             steps {
-//                 script {
-//                     dir('flask-app') {
-//                         echo "Deploying Flask app to K3s cluster..."
-                        
-//                         sh """
-//                             kubectl patch deployment flask-app -p '{"spec":{"template":{"spec":{"containers":[{"name":"flask-app","image":"${IMAGE_FULL}"}]}}}}' || \
-//                             kubectl apply -f app_deploy.yaml
-//                         """
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
-//     post {
-//         always {
-//             cleanWs()
-//         }
-//         success {
-//             echo "Pipeline completed successfully!"
-//             echo "App deployed with image: ${IMAGE_FULL}"
-//         }
-//         failure {
-//             echo "Pipeline failed!"
-//         }
-//     }
-// }
