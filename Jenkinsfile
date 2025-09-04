@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        REGISTRY = 'localhost:5000'
+        REGISTRY = '192.168.56.10:5000'
         IMAGE_NAME = 'flask-app'
         IMAGE_TAG = "${BUILD_NUMBER}"
         IMAGE_FULL = "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
