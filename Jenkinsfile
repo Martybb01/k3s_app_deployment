@@ -32,8 +32,8 @@ pipeline {
           - name: kaniko
             image: gcr.io/kaniko-project/executor:latest
             args:
-            - --context=dir://
-            - --dockerfile=Dockerfile
+            - --context=dir://workspace
+            - --dockerfile=./Dockerfile
             - --destination=${IMAGE_FULL}
             - --insecure
             - --skip-tls-verify
