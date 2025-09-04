@@ -75,7 +75,13 @@ pipeline {
                         echo "Deploying Flask app to K3s cluster..."
                         
                         sh """
-                            kubectl set image deployment/flask-app flask-app=${IMAGE_FULL}
+                            # Sostituisci l'immagine nel file YAML
+                            sed -i 's|image: localhost:5000/flask-app:latest|image: ${IMAGE_FULL}|g' app_deploy.yaml
+                            
+                            # Applica il deployment
+                            kubectl apply -f app_deploy.yaml
+                            
+                            # Attendi che il deployment sia pronto
                             kubectl rollout status deployment/flask-app
                         """
                     }
