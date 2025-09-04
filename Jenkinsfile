@@ -32,7 +32,7 @@ spec:
         image: gcr.io/kaniko-project/executor:latest
         args:
         - --context=dir:///workspace/flask-app
-        - --dockerfile=/workspace/flask-app/Dockerfile
+        - --dockerfile=Dockerfile
         - --destination=${IMAGE_FULL}
         - --insecure
         - --skip-tls-verify
