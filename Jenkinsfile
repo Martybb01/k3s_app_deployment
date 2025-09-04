@@ -17,55 +17,57 @@ pipeline {
         stage('Build with Kaniko Job') {
             steps {
                 script {
-                    def kanikoJob = """
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: kaniko-build-${BUILD_NUMBER}
-  namespace: jenkins
-spec:
-  template:
+                    dir('flask-app') { 
+                        def kanikoJob = """
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+    name: kaniko-build-${BUILD_NUMBER}
+    namespace: jenkins
     spec:
-      serviceAccountName: jenkins
-      containers:
-      - name: kaniko
-        image: gcr.io/kaniko-project/executor:latest
-        args:
-        - --context=dir:///workspace/flask-app
-        - --dockerfile=Dockerfile
-        - --destination=${IMAGE_FULL}
-        - --insecure
-        - --skip-tls-verify
-        - --cleanup
-        volumeMounts:
+    template:
+        spec:
+        serviceAccountName: jenkins
+        containers:
+        - name: kaniko
+            image: gcr.io/kaniko-project/executor:latest
+            args:
+            - --context=dir://
+            - --dockerfile=Dockerfile
+            - --destination=${IMAGE_FULL}
+            - --insecure
+            - --skip-tls-verify
+            - --cleanup
+            volumeMounts:
+            - name: kaniko-docker-config
+            mountPath: /kaniko/.docker
+            - name: workspace
+            mountPath: /workspace
+        volumes:
         - name: kaniko-docker-config
-          mountPath: /kaniko/.docker
+            configMap:
+            name: kaniko-docker-config
         - name: workspace
-          mountPath: /workspace
-      volumes:
-      - name: kaniko-docker-config
-        configMap:
-          name: kaniko-docker-config
-      - name: workspace
-        persistentVolumeClaim:
-          claimName: jenkins-pvc
-      restartPolicy: Never
-"""
-                    
-                    // Write job to file
-                    writeFile file: 'kaniko-job.yaml', text: kanikoJob
-                    
-                    // Apply the job
-                    sh 'kubectl apply -f kaniko-job.yaml'
-                    
-                    // Wait for completion
-                    sh 'kubectl wait --for=condition=complete job/kaniko-build-${BUILD_NUMBER} --timeout=300s'
-                    
-                    // Check logs
-                    sh 'kubectl logs job/kaniko-build-${BUILD_NUMBER}'
-                    
-                    // Cleanup
-                    sh 'kubectl delete job kaniko-build-${BUILD_NUMBER}'
+            persistentVolumeClaim:
+            claimName: jenkins-pvc
+        restartPolicy: Never
+    """
+                        
+                        // Write job to file
+                        writeFile file: 'kaniko-job.yaml', text: kanikoJob
+                        
+                        // Apply the job
+                        sh 'kubectl apply -f kaniko-job.yaml'
+                        
+                        // Wait for completion
+                        sh 'kubectl wait --for=condition=complete job/kaniko-build-${BUILD_NUMBER} --timeout=300s'
+                        
+                        // Check logs
+                        sh 'kubectl logs job/kaniko-build-${BUILD_NUMBER}'
+                        
+                        // Cleanup
+                        sh 'kubectl delete job kaniko-build-${BUILD_NUMBER}'
+                    }
                 }
             }
         }
