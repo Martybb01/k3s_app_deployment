@@ -40,13 +40,13 @@ pipeline {
             volumeMounts:
             - name: kaniko-docker-config
               mountPath: /kaniko/.docker
-            - name: workspace
-              mountPath: /workspace
+            - name: jenkins-home
+              mountPath: /var/jenkins_home
           volumes:
           - name: kaniko-docker-config
             configMap:
               name: kaniko-docker-config
-          - name: workspace
+          - name: jenkins-home
             persistentVolumeClaim:
               claimName: jenkins-pvc
           restartPolicy: Never
