@@ -42,7 +42,7 @@ pipeline {
             - name: kaniko-docker-config
               mountPath: /kaniko/.docker
             - name: workspace
-            mountPath: /workspace
+              mountPath: /workspace
           volumes:
           - name: kaniko-docker-config
             configMap:
@@ -50,7 +50,7 @@ pipeline {
           - name: workspace
             persistentVolumeClaim:
               claimName: jenkins-pvc
-        restartPolicy: Never
+    restartPolicy: Never
     """
                         
                         // Write job to file
