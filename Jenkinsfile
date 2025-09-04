@@ -50,7 +50,7 @@ pipeline {
           - name: workspace
             persistentVolumeClaim:
               claimName: jenkins-pvc
-    restartPolicy: Never
+          restartPolicy: Never
     """
                         
                         // Write job to file
