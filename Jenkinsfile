@@ -31,7 +31,7 @@ pipeline {
           - name: kaniko
             image: gcr.io/kaniko-project/executor:latest
             args:
-            - --context=dir:///var/jenkins_home/workspace/flask-app
+            - --context=dir:///vagrant/flask-app
             - --dockerfile=Dockerfile
             - --destination=${IMAGE_FULL}
             - --insecure
@@ -40,15 +40,16 @@ pipeline {
             volumeMounts:
             - name: kaniko-docker-config
               mountPath: /kaniko/.docker
-            - name: jenkins-home
-              mountPath: /var/jenkins_home
+            - name: vagrant-host
+              mountPath: /vagrant
           volumes:
           - name: kaniko-docker-config
             configMap:
               name: kaniko-docker-config
-          - name: jenkins-home
-            persistentVolumeClaim:
-              claimName: jenkins-pvc
+          - name: vagrant-host
+            hostPath:
+              path: /vagrant
+              type: Directory
           restartPolicy: Never
     """
                         
@@ -60,9 +61,6 @@ pipeline {
                         
                         // Wait for completion
                         sh 'kubectl wait --for=condition=complete job/kaniko-build-${BUILD_NUMBER} --timeout=300s'
-                        
-                        // Check logs
-                        sh 'kubectl logs job/kaniko-build-${BUILD_NUMBER}'
                         
                         // Cleanup
                         sh 'kubectl delete job kaniko-build-${BUILD_NUMBER}'
