@@ -17,7 +17,6 @@ pipeline {
         stage('Build with Kaniko Job') {
             steps {
                 script {
-                    dir('flask-app') { 
                         def kanikoJob = """
     apiVersion: batch/v1
     kind: Job
@@ -32,8 +31,8 @@ pipeline {
           - name: kaniko
             image: gcr.io/kaniko-project/executor:latest
             args:
-            - --context=dir://workspace
-            - --dockerfile=./Dockerfile
+            - --context=dir:///var/jenkins_home/workspace/flask-app
+            - --dockerfile=Dockerfile
             - --destination=${IMAGE_FULL}
             - --insecure
             - --skip-tls-verify
@@ -67,7 +66,6 @@ pipeline {
                         
                         // Cleanup
                         sh 'kubectl delete job kaniko-build-${BUILD_NUMBER}'
-                    }
                 }
             }
         }
