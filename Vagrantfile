@@ -1,6 +1,5 @@
 Vagrant.configure("2") do |config|
 
-  # Configurazione comune per tutti i nodi
   config.vm.provision "shell", inline: <<-SHELL
     sudo apt-get update -y
     echo "192.168.56.10 master-node" | sudo tee /etc/hosts
@@ -10,7 +9,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder ".", "/vagrant"
 
-  # Master Node (k3s server)
   config.vm.define "master" do |master|
     master.vm.box = "bento/ubuntu-22.04"
     master.vm.hostname = "master-node"
@@ -79,7 +77,7 @@ Vagrant.configure("2") do |config|
       
       node.vm.provision "shell", inline: <<-SHELL
         while [ ! -f /vagrant/node-token ]; do
-          echo "Aspettando il token dal master node..."
+          echo "Waiting for token from master node..."
           sleep 5
         done
         
@@ -97,7 +95,7 @@ Vagrant.configure("2") do |config|
         sudo -u vagrant sshpass -p 'vagrant' ssh-copy-id -o StrictHostKeyChecking=no vagrant@192.168.56.10
 
         while ! sudo -u vagrant ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 vagrant@192.168.56.10 "test -f /home/vagrant/.kube/config-workers" 2>/dev/null; do
-          echo "Aspettando che il file config-workers sia disponibile sul master..."
+          echo "Waiting for config-workers file to be available on master..."
           sleep 5
         done
 
@@ -114,7 +112,7 @@ Vagrant.configure("2") do |config|
         sudo chown vagrant:vagrant /opt/jenkins-data
         sudo chmod 755 /opt/jenkins-data
         
-        echo "Worker node0#{i} configurato e connesso al cluster!"
+        echo "Worker node0#{i} configured and connected to cluster!"
       SHELL
       
       if i == 2
@@ -122,11 +120,11 @@ Vagrant.configure("2") do |config|
           sudo -u vagrant sshpass -p 'vagrant' ssh-copy-id -o StrictHostKeyChecking=no vagrant@192.168.56.10
 
           if sudo -u vagrant ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 vagrant@192.168.56.10 "echo 'SSH connection successful'"; then
-            echo "Connessione SSH al master riuscita!"
+            echo "SSH connection to master successful!"
             sleep 30
             sudo -u vagrant ssh -o StrictHostKeyChecking=no vagrant@192.168.56.10 "cd /vagrant && bash jenkins/deploy-kaniko-jenkins.sh"
           else
-            echo "Connessione SSH al master fallita"
+            echo "SSH connection to master failed"
           fi
         SHELL
       end

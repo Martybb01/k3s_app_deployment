@@ -33,8 +33,6 @@ spec:
         - name: k3s-socket
           mountPath: /var/run/k3s
           readOnly: true
-        - name: kaniko-config
-          mountPath: /kaniko/.docker
         resources:
           limits:
             memory: "1.5Gi"
@@ -50,9 +48,6 @@ spec:
         hostPath:
           path: /var/run/k3s
           type: Directory
-      - name: kaniko-config
-        configMap:
-          name: kaniko-config
 ---
 apiVersion: v1
 kind: Service
@@ -77,14 +72,14 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: kaniko-config
+  name: kaniko-docker-config
   namespace: jenkins
 data:
   config.json: |
     {
       "auths": {
-        "localhost:5000": {
-          "auth": ""
+        "https://index.docker.io/v1/": {
+          "auth": "bWFyYm9jY3U6ZGNrcl9wYXRfLTVBR2NtUGpzbTBnMjNiUTluSVUzbFpfTUxj"
         }
       }
     }
@@ -99,6 +94,9 @@ rules:
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: ["apps"]
   resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

@@ -1,10 +1,9 @@
 pipeline {
     agent any
     environment {
-        REGISTRY = 'docker.io'
         IMAGE_NAME = 'marboccu/flask-app'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        IMAGE_FULL = "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+        IMAGE_FULL = "${IMAGE_NAME}:${IMAGE_TAG}"
     }
 
     stages {
@@ -51,18 +50,13 @@ pipeline {
               path: /vagrant
               type: Directory
           restartPolicy: Never
-    """
-                        
-                        // Write job to file
+    """                   
                         writeFile file: 'kaniko-job.yaml', text: kanikoJob
                         
-                        // Apply the job
                         sh 'kubectl apply -f kaniko-job.yaml'
                         
-                        // Wait for completion
                         sh 'kubectl wait --for=condition=complete job/kaniko-build-${BUILD_NUMBER} --timeout=300s'
                         
-                        // Cleanup
                         sh 'kubectl delete job kaniko-build-${BUILD_NUMBER}'
                 }
             }
@@ -73,15 +67,11 @@ pipeline {
                 script {
                     dir('flask-app') {
                         echo "Deploying Flask app to K3s cluster..."
-                        
                         sh """
-                            # Sostituisci l'immagine nel file YAML
                             sed -i 's|image: .*|image: ${IMAGE_FULL}|g' app_deploy.yaml
                             
-                            # Applica il deployment
                             kubectl apply -f app_deploy.yaml
                             
-                            # Attendi che il deployment sia pronto
                             kubectl rollout status deployment/flask-app
                         """
                     }
