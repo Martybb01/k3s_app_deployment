@@ -1,10 +1,9 @@
 pipeline {
     agent any
     environment {
-        REGISTRY = 'localhost:5000'
-        IMAGE_NAME = 'flask-app'
+        IMAGE_NAME = 'marboccu/flask-app'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        IMAGE_FULL = "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+        IMAGE_FULL = "${IMAGE_NAME}:${IMAGE_TAG}"
     }
 
     stages {
@@ -38,14 +37,14 @@ pipeline {
             - --skip-tls-verify
             - --cleanup
             volumeMounts:
-            - name: registry-config
+            - name: kaniko-docker-config
               mountPath: /kaniko/.docker
             - name: vagrant-host
               mountPath: /vagrant
           volumes:
-          - name: registry-config
+          - name: kaniko-docker-config
             configMap:
-              name: registry-config
+              name: kaniko-docker-config
           - name: vagrant-host
             hostPath:
               path: /vagrant
