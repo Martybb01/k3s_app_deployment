@@ -56,7 +56,7 @@ Vagrant.configure("2") do |config|
       
       sudo cp /var/lib/rancher/k3s/server/node-token /vagrant/node-token
       
-      echo "Master node configurato! Token salvato in /vagrant/node-token"
+      echo "Master node configured! Token saved in /vagrant/node-token"
     SHELL
 
     
