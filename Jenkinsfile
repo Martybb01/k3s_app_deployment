@@ -72,7 +72,7 @@ pipeline {
                             
                             kubectl apply -f app_deploy.yaml
                             
-                            kubectl rollout status deployment/flask-app
+                            kubectl rollout status -n default deployment/flask-app
                         """
                     }
                 }
