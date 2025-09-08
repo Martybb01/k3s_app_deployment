@@ -70,7 +70,7 @@ pipeline {
                         sh """
                             sed -i 's|image: .*|image: ${IMAGE_FULL}|g' app_deploy.yaml
                             
-                            kubectl apply -f app_deploy.yaml
+                            kubectl apply -n default -f app_deploy.yaml
                             
                             kubectl rollout status -n default deployment/flask-app
                         """
